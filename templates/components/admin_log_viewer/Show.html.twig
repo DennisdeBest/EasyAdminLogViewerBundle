@@ -1,0 +1,32 @@
+<div {{ attributes }}>
+	<label>
+		<span>Level</span>
+		<select class="form-select" name="levelFilter" data-model="level" data-action="live#action"
+						data-live-action-param="changeFilter">
+			<option {% if level is null %} selected {% endif %} value="">All</option>
+			{% for levelFilter in levelFilters %}
+				<option {% if level == levelFilter %} selected {% endif %} value="{{ levelFilter }}">{{ levelFilter }}</option>
+			{% endfor %}
+		</select>
+	</label>
+	<label>
+		<span>Type</span>
+		<select class="form-select" name="typeFilter" data-model="type" data-action="live#action"
+						data-live-action-param="changeFilter">
+			<option {% if type is null %} selected {% endif %} value="">All</option>
+			{% for typeFilter in typeFilters %}
+				<option {% if type == typeFilter %} selected {% endif %} value="{{ typeFilter }}">{{ typeFilter }}</option>
+			{% endfor %}
+		</select>
+	</label>
+
+	<span>
+		Lines <span class="badge badge-primary">{{ lineCount }}</span>
+	</span>
+
+	<br>
+	<br>
+
+
+	<twig:AdminLogViewer:Lines :lines="contentArray"/>
+</div>

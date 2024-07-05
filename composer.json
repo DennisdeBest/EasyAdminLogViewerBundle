@@ -1,0 +1,46 @@
+{
+	"name": "codebuds/easyadmin-log-viewer-bundle",
+	"type": "symfony-bundle",
+	"description": "A log viewer bundle for EasyAdmin 4 in Symfony applications",
+	"keywords": ["symfony", "easyadmin", "bundle", "log", "viewer"],
+	"homepage": "https://github.com/your-vendor/easyadmin-log-viewer-bundle",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Dennis de Best",
+			"email": "dennis@debest.fr"
+		}
+	],
+	"require": {
+		"php": "^8.2",
+		"symfony/framework-bundle": "^7.0",
+		"symfony/twig-bundle": "^7.0",
+		"easycorp/easyadmin-bundle": "^4.0",
+		"symfony/ux-live-component": "^2.13",
+		"symfony/ux-twig-component": "^2.13"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^10.0",
+		"symfony/phpunit-bridge": "^7.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"YourVendor\\EasyAdminLogViewerBundle\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"YourVendor\\EasyAdminLogViewerBundle\\Tests\\": "tests/"
+		}
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "1.0-dev"
+		}
+	},
+	"config": {
+		"sort-packages": true
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true
+}

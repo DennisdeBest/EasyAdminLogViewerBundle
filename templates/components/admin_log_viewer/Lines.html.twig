@@ -1,0 +1,15 @@
+{% for line in lines %}
+	<div style="display: flex; gap: 2rem">
+		<span>{{ line.date|format_datetime() }}</span>
+		<span>{{ line.type }}</span>
+		<b>
+				<span class="badge badge-{{ line.badgeLevel }}">
+					{{- line.level -}}
+				</span>
+		</b>
+	</div>
+	<div style="overflow-wrap: break-word;">
+		{{ line.message }}
+	</div>
+	<hr/>
+{% endfor %}

@@ -1,0 +1,19 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  YourVendor\EasyAdminLogViewerBundle\:
+    resource: '../src/'
+    exclude:
+      - '../src/DependencyInjection/'
+      - '../src/Entity/'
+      - '../src/EasyAdminLogViewerBundle.php'
+
+  CodeBuds\EasyAdminLogViewerBundle\Controller\LogFileController:
+    tags: ['controller.service_arguments']
+    arguments:
+      $logFileService: '@CodeBuds\EasyAdminLogViewerBundle\Service\LogFileService'
+      $adminUrlGenerator: '@EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator'
+      $routePrefix: '%easy_admin_log_viewer.route_prefix%'
