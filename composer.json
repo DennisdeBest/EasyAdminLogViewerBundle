@@ -13,24 +13,30 @@
 	],
 	"require": {
 		"php": "^8.2",
+		"easycorp/easyadmin-bundle": "^4.0",
+		"phpstan/phpstan": "^1.12",
 		"symfony/framework-bundle": "^7.0",
 		"symfony/twig-bundle": "^7.0",
-		"easycorp/easyadmin-bundle": "^4.0",
 		"symfony/ux-live-component": "^2.13",
 		"symfony/ux-twig-component": "^2.13"
 	},
 	"require-dev": {
 		"phpunit/phpunit": "^10.0",
-		"symfony/phpunit-bridge": "^7.0"
+		"rector/rector": "^1.2",
+		"roave/security-advisories": "dev-latest",
+		"symfony/browser-kit": "^7.1",
+		"symfony/phpunit-bridge": "^7.0",
+		"symfony/routing": "^7.1",
+		"symfony/yaml": "^7.1"
 	},
 	"autoload": {
 		"psr-4": {
-			"YourVendor\\EasyAdminLogViewerBundle\\": "src/"
+			"CodeBuds\\EasyAdminLogViewerBundle\\": "src/"
 		}
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"YourVendor\\EasyAdminLogViewerBundle\\Tests\\": "tests/"
+			"CodeBuds\\EasyAdminLogViewerBundle\\Tests\\": "tests/"
 		}
 	},
 	"extra": {
@@ -41,6 +47,34 @@
 	"config": {
 		"sort-packages": true
 	},
+
+	"scripts": {
+		"docker-build" : [
+			"docker build -f docker/Dockerfile . --tag easy-admin-log-viewer-bundle"
+		],
+		"docker-run" : [
+			"docker build --quiet -f docker/Dockerfile . --tag easy-admin-log-viewer-bundle && docker run -it --rm -v $(pwd):/app easy-admin-log-viewer-bundle run "
+		],
+		"cs-fix": [
+			"@docker-run cs-fix"
+		],
+		"stan": [
+			"@docker-run stan"
+		],
+		"rector": [
+			"@docker-run rector"
+		],
+		"clean": [
+			"@docker-run clean"
+		],
+		"test": [
+			"@docker-run test"
+		],
+		"coverage": [
+			"@docker-run coverage"
+		]
+	},
+
 	"minimum-stability": "dev",
 	"prefer-stable": true
 }

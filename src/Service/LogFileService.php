@@ -3,6 +3,7 @@
 namespace CodeBuds\EasyAdminLogViewerBundle\Service;
 
 use CodeBuds\EasyAdminLogViewerBundle\Entity\Dto\FileDto;
+use http\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -12,6 +13,8 @@ readonly class LogFileService
     public function __construct(
         #[Autowire('%kernel.logs_dir%')]
         private string $logDir,
+        #[Autowire('%easy_admin_log_viewer.levels%')]
+        private array $levels,
     ) {
     }
 
@@ -52,7 +55,7 @@ readonly class LogFileService
     {
         // Check that the path strictly starts with the log dir and does not contain any back steps like ../../
         if (!str_starts_with($path, $this->logDir) || str_contains($path, '..')) {
-            throw new AccessDeniedHttpException('Invalid file path.');
+            throw new \InvalidArgumentException('Invalid file path.');
         }
 
         if (!file_exists($path)) {
@@ -103,7 +106,7 @@ readonly class LogFileService
                 continue;
             }
 
-            $badgeLevel = self::getBadgeLevel($level);
+            $badgeLevel = self::getBadgeLevel($level, $this->levels);
 
             $formatted[] =
                 [
@@ -118,14 +121,15 @@ readonly class LogFileService
         return ['content' => $formatted, 'types' => $types, 'levels' => $levels];
     }
 
-    public static function getBadgeLevel(string $level): ?string
+    public static function getBadgeLevel(string $level, array $levels): ?string
     {
-        return match ($level) {
-            'INFO' => 'info',
-            'CRITICAL', 'ERROR' => 'danger',
-            'DEBUG' => 'secondary',
-            default => null,
-        };
+        foreach ($levels as $configLevel) {
+            if ($level === $configLevel['level']) {
+                return $configLevel['class'];
+            }
+        }
+
+        return null;
     }
 
     public function deleteLogFile(string $path): string

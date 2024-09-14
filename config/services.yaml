@@ -4,16 +4,21 @@ services:
     autoconfigure: true
     public: false
 
-  YourVendor\EasyAdminLogViewerBundle\:
+  CodeBuds\EasyAdminLogViewerBundle\:
     resource: '../src/'
     exclude:
       - '../src/DependencyInjection/'
       - '../src/Entity/'
       - '../src/EasyAdminLogViewerBundle.php'
 
-  CodeBuds\EasyAdminLogViewerBundle\Controller\LogFileController:
+  CodeBuds\EasyAdminLogViewerBundle\Controller\Admin\LogFileController:
     tags: ['controller.service_arguments']
     arguments:
       $logFileService: '@CodeBuds\EasyAdminLogViewerBundle\Service\LogFileService'
       $adminUrlGenerator: '@EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator'
       $routePrefix: '%easy_admin_log_viewer.route_prefix%'
+
+
+  CodeBuds\EasyAdminLogViewerBundle\Twig\Components\:
+    resource: '../src/Twig/Components'
+    tags: ['twig.component']

@@ -47,9 +47,29 @@ easy_admin_log_viewer:
         - { level: 'DEBUG', class: 'secondary' }
 ```
 
-## Usage
+The level is what is automatically picked up from the log files. Then a CSS class can be set per level. By default the predefined Bootstrap styles can be used `primary`, `secondary`, `success`, `danger`, `warning`, `info`, `light`, `dark`
 
-After installation and configuration, a new "Log Files" menu item will appear in your EasyAdmin dashboard. Click on it to access the log viewer.
+### Twig component
+
+A default path has to be added to the `twig_component.yaml` configuration file:
+
+```yaml
+twig_component:
+    defaults:
+				#...
+        CodeBuds\EasyAdminLogViewerBundle\Twig\Components\: '@EasyAdminLogViewer/components/'
+
+```
+
+## Routing
+
+The following needs to be added to the applications routes.yaml configuration file:
+
+```yaml
+easy_admin_log_viewer:
+  resource: '@EasyAdminLogViewerBundle/config/routes.yaml'
+  prefix: '%easy_admin_log_viewer.route_prefix%'
+```
 
 ### Customizing the Route Prefix
 
@@ -62,10 +82,46 @@ easy_admin_log_viewer:
 
 This will change all log viewer routes to start with `/custom-admin` instead of the default `/admin`.
 
+### Adding the log viewer to the dashboard
+
+To see the log files the route can be added to your EasyAdmin dashboard controller:
+
+```php
+<?php
+
+namespace App\Controller\Admin;
+
+use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
+use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
+
+class DashboardController extends AbstractDashboardController
+{
+    #[\Override]
+    public function configureMenuItems(): iterable
+    {
+        ...
+        yield MenuItem::linktoRoute('Logs', 'fa fa-file-alt', 'easy_admin_log_viewer_list')->setPermission('ROLE_ADMIN');
+        ...
+    }
+}
+```
+
 ### Security
 Only users with `ROLE_ADMIN` can access the log viewer interface. Make sure to properly secure your admin routes.
 
 ### Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-License
+## Screenshots
+
+### List all the log files
+![screen1.png](./docs/screen1.png)
+
+### Show all lines
+![screen2.png](./docs/screen2.png)
+
+### Filter by type
+![screen3.png](./docs/screen3.png)
+
+### Filter by level
+![screen4.png](./docs/screen4.png)

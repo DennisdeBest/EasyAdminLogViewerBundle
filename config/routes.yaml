@@ -1,15 +1,15 @@
 easy_admin_log_viewer_list:
   path: /log-files
-  controller: CodeBuds\EasyAdminLogViewerBundle\Controller\LogFileController::list
+  controller: CodeBuds\EasyAdminLogViewerBundle\Controller\Admin\LogFileController::list
 
 easy_admin_log_viewer_download:
   path: /log-files/download
-  controller: CodeBuds\EasyAdminLogViewerBundle\Controller\LogFileController::download
+  controller: CodeBuds\EasyAdminLogViewerBundle\Controller\Admin\LogFileController::download
 
 easy_admin_log_viewer_show:
   path: /log-files/show
-  controller: CodeBuds\EasyAdminLogViewerBundle\Controller\LogFileController::show
+  controller: CodeBuds\EasyAdminLogViewerBundle\Controller\Admin\LogFileController::show
 
 easy_admin_log_viewer_delete:
   path: /log-files/delete
-  controller: CodeBuds\EasyAdminLogViewerBundle\Controller\LogFileController::delete
+  controller: CodeBuds\EasyAdminLogViewerBundle\Controller\Admin\LogFileController::delete

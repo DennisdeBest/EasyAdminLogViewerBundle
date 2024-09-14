@@ -1,0 +1,38 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_title %}
+	{{ file.name }} <small> size : {{ file.humanSize }}    last updated : {{ file.lastUpdatedAt|format_datetime }}</small>
+{% endblock %}
+{% block page_actions %}
+	<div class="page-actions" style="display: flex; gap: 2rem">
+		<a href="{{ ea_url().setRoute('easy_admin_log_viewer_list') }}">
+			<button class="btn btn-primary">
+				<span class="btn-label"><span class="action-label">Return to list</span></span>
+			</button>
+		</a>
+
+		<a href="{{ ea_url().setRoute('easy_admin_log_viewer_download', {path: file.path}) }}">
+			<button class="btn btn-secondary">
+				<span class="btn-label"><span class="action-label">Download</span></span>
+			</button>
+		</a>
+
+		<a href="{{ ea_url().setRoute('easy_admin_log_viewer_delete', {path: file.path}) }}">
+			<button class="btn btn-danger">
+				<span class="btn-label"><span class="action-label">Delete</span></span>
+			</button>
+		</a>
+
+		<a href="{{ ea_url().setRoute('easy_admin_log_viewer_show', {path: file.path}) }}">
+			<button class="btn btn-secondary">
+				<span class="btn-label"><span class="action-label">Reload</span></span>
+			</button>
+		</a>
+	</div>
+
+{% endblock %}
+{% block page_content %}
+
+	<twig:EasyAdminLogViewer:Show :file="file" />
+
+{% endblock %}

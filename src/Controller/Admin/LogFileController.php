@@ -11,7 +11,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class LogFileController extends AbstractController
@@ -19,21 +18,19 @@ class LogFileController extends AbstractController
     public function __construct(
         private readonly LogFileService $logFileService,
         private readonly AdminUrlGenerator $adminUrlGenerator,
-		private readonly string $routePrefix
+        private readonly string $routePrefix
     ) {
     }
 
-    #[Route(path: '/admin/log-files', name: 'admin_log_files')]
     public function list(): Response
     {
         $files = $this->logFileService->getLogFiles();
 
-        return $this->render('admin/log_files/list.html.twig', [
+        return $this->render('@EasyAdminLogViewer/list.html.twig', [
             'files' => $files,
         ]);
     }
 
-    #[Route(path: '/admin/log-files/download', name: 'admin_log_files_download')]
     public function download(Request $request): Response
     {
         $routeParams = $request->query->all()[EA::ROUTE_PARAMS];
@@ -61,7 +58,6 @@ class LogFileController extends AbstractController
         return $response;
     }
 
-    #[Route(path: '/admin/log-files/show', name: 'admin_log_files_show')]
     public function show(Request $request): Response
     {
         $routeParams = $request->query->all()[EA::ROUTE_PARAMS];
@@ -69,19 +65,15 @@ class LogFileController extends AbstractController
 
         $file = $this->logFileService->getFileDataForAbsolutePath($path);
 
-        $level = $routeParams['level'] ?? null;
-        $type = $routeParams['type'] ?? null;
-
         if (!$this->isGranted('ROLE_ADMIN')) {
             throw new AccessDeniedException();
         }
 
-        return $this->render('admin/log_files/show.html.twig', [
+        return $this->render('@EasyAdminLogViewer/show.html.twig', [
             'file' => $file,
         ]);
     }
 
-    #[Route(path: '/admin/log-files/delete', name: 'admin_log_files_delete')]
     public function delete(Request $request): Response
     {
         $routeParams = $request->query->all()[EA::ROUTE_PARAMS];
@@ -105,9 +97,9 @@ class LogFileController extends AbstractController
 
         $url = $this->adminUrlGenerator->setRoute('admin_log_files');
 
-		if (!str_starts_with($url, $this->routePrefix)) {
-			$url = $this->routePrefix . $url;
-		}
+        if (!str_starts_with($url, $this->routePrefix)) {
+            $url = $this->routePrefix . $url;
+        }
 
         return new RedirectResponse($url);
     }

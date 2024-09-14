@@ -12,7 +12,7 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\UX\LiveComponent\Metadata\UrlMapping;
 use Symfony\UX\TwigComponent\Attribute\PostMount;
 
-#[AsLiveComponent(template: 'components/admin_log_viewer/Show.html.twig')]
+#[AsLiveComponent(name: 'EasyAdminLogViewer:Show', template: '@EasyAdminLogViewer/components/Show.html.twig')]
 class Show
 {
     use DefaultActionTrait;
