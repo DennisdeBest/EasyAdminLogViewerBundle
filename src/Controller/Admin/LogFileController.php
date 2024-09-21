@@ -16,9 +16,8 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 class LogFileController extends AbstractController
 {
     public function __construct(
-        private readonly LogFileService $logFileService,
+        private readonly LogFileService    $logFileService,
         private readonly AdminUrlGenerator $adminUrlGenerator,
-        private readonly string $routePrefix
     ) {
     }
 
@@ -74,7 +73,7 @@ class LogFileController extends AbstractController
         ]);
     }
 
-    public function delete(Request $request): Response
+    public function delete(Request $request): RedirectResponse
     {
         $routeParams = $request->query->all()[EA::ROUTE_PARAMS];
         $path = $routeParams['path'];
@@ -95,11 +94,7 @@ class LogFileController extends AbstractController
 
         $this->addFlash($type, $message);
 
-        $url = $this->adminUrlGenerator->setRoute('admin_log_files');
-
-        if (!str_starts_with($url, $this->routePrefix)) {
-            $url = $this->routePrefix . $url;
-        }
+        $url = $this->adminUrlGenerator->setRoute('easy_admin_log_viewer_list')->generateUrl();
 
         return new RedirectResponse($url);
     }

@@ -16,7 +16,6 @@ services:
     arguments:
       $logFileService: '@CodeBuds\EasyAdminLogViewerBundle\Service\LogFileService'
       $adminUrlGenerator: '@EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator'
-      $routePrefix: '%easy_admin_log_viewer.route_prefix%'
 
 
   CodeBuds\EasyAdminLogViewerBundle\Twig\Components\:
