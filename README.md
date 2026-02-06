@@ -12,8 +12,8 @@ A Symfony bundle that provides a log viewer interface for EasyAdmin 4, compatibl
 
 ## Requirements
 
-- PHP 8.3+
-- Symfony 7+
+- PHP 8.5+
+- Symfony 8+
 - EasyAdmin 4
 
 ## Installation

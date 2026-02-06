@@ -78,12 +78,8 @@ class EasyAdminLogViewerTestingKernel extends Kernel
 					'path' => '%kernel.project_dir%/var/test.db',
 				],
 				'orm' => [
-					'auto_generate_proxy_classes' => '%kernel.debug%',
 					'naming_strategy' => 'doctrine.orm.naming_strategy.underscore_number_aware',
 					'auto_mapping' => false,
-					'controller_resolver' => [
-						'auto_mapping' => false, // Explicitly configure auto_mapping to true
-					],
 				],
 			]);
 			$container->loadFromExtension('twig', [

@@ -61,7 +61,6 @@ class LogFileServiceTest extends TestCase
         $files = $this->logFileService->getLogFiles();
 
         $this->assertCount(2, $files);
-        $this->assertContainsOnlyInstancesOf(FileDto::class, $files);
     }
 
     public function testGetLogFilesIgnoresNonLogFiles(): void

@@ -7,7 +7,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class RemoveEasyAdminCommandsPass implements CompilerPassInterface
 {
-	public function process(ContainerBuilder $container)
+	public function process(ContainerBuilder $container): void
 	{
 		$commandsToRemove = [
 			'EasyCorp\Bundle\EasyAdminBundle\Command\MakeCrudControllerCommand',

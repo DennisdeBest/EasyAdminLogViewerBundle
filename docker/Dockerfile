@@ -1,7 +1,7 @@
 #syntax=docker/dockerfile:1.4
 
-FROM dunglas/frankenphp:1.2.1-alpine AS frankenphp_upstream
-FROM composer/composer:2.7.6-bin AS composer_upstream
+FROM dunglas/frankenphp:1.11.1-alpine AS frankenphp_upstream
+FROM composer/composer:2.9.5-bin AS composer_upstream
 
 FROM frankenphp_upstream AS frankenphp_base
 
@@ -22,7 +22,6 @@ RUN set -eux; \
 		gd \
 		xsl \
 		zip \
-    pdo_mysql \
 	;
 
 ENV COMPOSER_ALLOW_SUPERUSER=1

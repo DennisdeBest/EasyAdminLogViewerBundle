@@ -1,10 +1,7 @@
 #!/bin/sh
 
-setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var
-setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var
-
 if [ "$1" = 'run' ]; then
-    composer install --no-cache --prefer-dist --no-autoloader --no-scripts --no-progress --quiet
+    COMPOSER_NO_DEV=0 composer install --no-cache --prefer-dist --no-scripts --no-progress --quiet
     if [ "$2"  = 'stan' ]; then
     	./vendor/bin/phpstan --memory-limit=-1
 		fi

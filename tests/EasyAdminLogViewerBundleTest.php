@@ -2,7 +2,6 @@
 
 namespace CodeBuds\EasyAdminLogViewerBundle\Tests;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class EasyAdminLogViewerBundleTest extends KernelTestCase
@@ -39,5 +38,27 @@ class EasyAdminLogViewerBundleTest extends KernelTestCase
 		$this->assertCount(1, $levels);
 		$this->assertEquals('CUSTOM', $levels[0]['level']);
 		$this->assertEquals('/custom-admin', $prefix);
+	}
+
+	protected function restoreExceptionHandler(): void
+	{
+		while (true) {
+			$previousHandler = set_exception_handler(static fn() => null);
+
+			restore_exception_handler();
+
+			if ($previousHandler === null) {
+				break;
+			}
+
+			restore_exception_handler();
+		}
+	}
+
+	protected function tearDown(): void
+	{
+		parent::tearDown();
+
+		$this->restoreExceptionHandler();
 	}
 }
