@@ -2,13 +2,12 @@
 
 namespace CodeBuds\EasyAdminLogViewerBundle\Twig\Components\AdminLogViewer;
 
-use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
-use Symfony\UX\LiveComponent\DefaultActionTrait;
+use CodeBuds\EasyAdminLogViewerBundle\Entity\Dto\LogFileLine;
+use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
-#[AsLiveComponent(name: 'EasyAdminLogViewer:Lines', template: '@EasyAdminLogViewer/components/Lines.html.twig')]
+#[AsTwigComponent(name: 'EasyAdminLogViewer:Lines', template: '@EasyAdminLogViewer/components/Lines.html.twig')]
 class Lines
 {
-    use DefaultActionTrait;
-
+    /** @var LogFileLine[] */
     public array $lines = [];
 }

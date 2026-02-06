@@ -11,62 +11,40 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_ADMIN')]
 class LogFileController extends AbstractController
 {
     public function __construct(
-        private readonly LogFileService    $logFileService,
+        private readonly LogFileService $logFileService,
         private readonly AdminUrlGenerator $adminUrlGenerator,
     ) {
     }
 
     public function list(): Response
     {
-        $files = $this->logFileService->getLogFiles();
-
         return $this->render('@EasyAdminLogViewer/list.html.twig', [
-            'files' => $files,
+            'files' => $this->logFileService->getLogFiles(),
         ]);
     }
 
     public function download(Request $request): Response
     {
-        $routeParams = $request->query->all()[EA::ROUTE_PARAMS];
-        $path = $routeParams['path'];
-
-        if (!$this->isGranted('ROLE_ADMIN')) {
-            throw new AccessDeniedException();
-        }
-
+        $path = $this->getPathFromRequest($request);
         $this->logFileService->validateLogFilePath($path);
 
-        // Validate that the file exists before creating the response
-        if (!file_exists($path)) {
-            throw $this->createNotFoundException('The file does not exist.');
-        }
-
         $response = new BinaryFileResponse($path);
-        // You can set whatever Content-Type you like, depending on the type of file you're sending
         $response->headers->set('Content-Type', 'text/plain');
-        $response->setContentDisposition(
-            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-            basename($path),  // This will set the downloaded file's name
-        );
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, basename($path));
 
         return $response;
     }
 
     public function show(Request $request): Response
     {
-        $routeParams = $request->query->all()[EA::ROUTE_PARAMS];
-        $path = $routeParams['path'];
-
+        $path = $this->getPathFromRequest($request);
         $file = $this->logFileService->getFileDataForAbsolutePath($path);
-
-        if (!$this->isGranted('ROLE_ADMIN')) {
-            throw new AccessDeniedException();
-        }
 
         return $this->render('@EasyAdminLogViewer/show.html.twig', [
             'file' => $file,
@@ -75,17 +53,16 @@ class LogFileController extends AbstractController
 
     public function delete(Request $request): RedirectResponse
     {
-        $routeParams = $request->query->all()[EA::ROUTE_PARAMS];
-        $path = $routeParams['path'];
+        if (!$this->isCsrfTokenValid('delete-log-file', $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid CSRF token.');
 
-        if (!$this->isGranted('ROLE_ADMIN')) {
-            throw new AccessDeniedException();
+            return $this->redirectToList();
         }
 
+        $path = $request->request->get('path', '');
         $type = 'success';
 
         try {
-            $this->logFileService->validateLogFilePath($path);
             $message = $this->logFileService->deleteLogFile($path);
         } catch (\Exception $exception) {
             $type = 'error';
@@ -94,6 +71,18 @@ class LogFileController extends AbstractController
 
         $this->addFlash($type, $message);
 
+        return $this->redirectToList();
+    }
+
+    private function getPathFromRequest(Request $request): string
+    {
+        $routeParams = $request->query->all()[EA::ROUTE_PARAMS] ?? [];
+
+        return $routeParams['path'] ?? '';
+    }
+
+    private function redirectToList(): RedirectResponse
+    {
         $url = $this->adminUrlGenerator->setRoute('easy_admin_log_viewer_list')->generateUrl();
 
         return new RedirectResponse($url);

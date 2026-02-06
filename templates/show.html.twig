@@ -1,38 +1,38 @@
 {% extends '@EasyAdmin/page/content.html.twig' %}
 
 {% block page_title %}
-	{{ file.name }} <small> size : {{ file.humanSize }}    last updated : {{ file.lastUpdatedAt|format_datetime }}</small>
+	{{ file.name }} <small> size: {{ file.humanSize }} &mdash; last updated: {{ file.lastUpdatedAt|format_datetime }}</small>
 {% endblock %}
 {% block page_actions %}
-	<div class="page-actions" style="display: flex; gap: 2rem">
+	<div class="page-actions" style="display: flex; gap: 2rem; align-items: center">
 		<a href="{{ ea_url().setRoute('easy_admin_log_viewer_list') }}">
-			<button class="btn btn-primary">
+			<button class="btn btn-primary" type="button">
 				<span class="btn-label"><span class="action-label">Return to list</span></span>
 			</button>
 		</a>
 
 		<a href="{{ ea_url().setRoute('easy_admin_log_viewer_download', {path: file.path}) }}">
-			<button class="btn btn-secondary">
+			<button class="btn btn-secondary" type="button">
 				<span class="btn-label"><span class="action-label">Download</span></span>
 			</button>
 		</a>
 
-		<a href="{{ ea_url().setRoute('easy_admin_log_viewer_delete', {path: file.path}) }}">
-			<button class="btn btn-danger">
+		<form method="post" action="{{ path('easy_admin_log_viewer_delete') }}" style="display: inline"
+					onsubmit="return confirm('Delete {{ file.name }}?')">
+			<input type="hidden" name="_token" value="{{ csrf_token('delete-log-file') }}">
+			<input type="hidden" name="path" value="{{ file.path }}">
+			<button type="submit" class="btn btn-danger">
 				<span class="btn-label"><span class="action-label">Delete</span></span>
 			</button>
-		</a>
+		</form>
 
 		<a href="{{ ea_url().setRoute('easy_admin_log_viewer_show', {path: file.path}) }}">
-			<button class="btn btn-secondary">
+			<button class="btn btn-secondary" type="button">
 				<span class="btn-label"><span class="action-label">Reload</span></span>
 			</button>
 		</a>
 	</div>
-
 {% endblock %}
 {% block page_content %}
-
 	<twig:EasyAdminLogViewer:Show :file="file" />
-
 {% endblock %}

@@ -22,9 +22,13 @@ class EasyAdminLogViewerBundle extends AbstractBundle
                         ->end()
                     ->end()
                     ->defaultValue([
-                        ['level' => 'INFO', 'class' => 'info'],
-                        ['level' => 'ERROR', 'class' => 'danger'],
+                        ['level' => 'EMERGENCY', 'class' => 'danger'],
                         ['level' => 'CRITICAL', 'class' => 'danger'],
+                        ['level' => 'ERROR', 'class' => 'danger'],
+                        ['level' => 'ALERT', 'class' => 'danger'],
+                        ['level' => 'WARNING', 'class' => 'warning'],
+                        ['level' => 'NOTICE', 'class' => 'info'],
+                        ['level' => 'INFO', 'class' => 'info'],
                         ['level' => 'DEBUG', 'class' => 'secondary'],
                     ])
                 ->end()
@@ -46,20 +50,19 @@ class EasyAdminLogViewerBundle extends AbstractBundle
         $container->parameters()
             ->set('easy_admin_log_viewer.route_prefix', $config['route_prefix']);
 
-
         $bundles = $builder->getParameter('kernel.bundles');
         if (isset($bundles['TwigComponentBundle'])) {
             $builder->prependExtensionConfig('twig_component', ['defaults' => ['CodeBuds\\EasyAdminLogViewerBundle\\Twig\\Components\\' => '@EasyAdminLogViewer/components/']]);
         }
 
         if (isset($bundles['TwigBundle'])) {
-            $builder->prependExtensionConfig('twig', ['paths' => [ dirname(__DIR__).'/../templates' => 'EasyAdminLogViewer',]]);
+            $builder->prependExtensionConfig('twig', ['paths' => [dirname(__DIR__) . '/templates' => 'EasyAdminLogViewer']]);
         }
     }
 
     public function configureRoutes(RoutingConfigurator $routes): void
     {
-        $routes->import(__DIR__.'/config/routes.yaml')
+        $routes->import(dirname(__DIR__) . '/config/routes.yaml')
             ->prefix('%easy_admin_log_viewer.route_prefix%');
     }
 }

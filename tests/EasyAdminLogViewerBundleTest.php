@@ -16,7 +16,7 @@ class EasyAdminLogViewerBundleTest extends KernelTestCase
 		$levels = $container->getParameter('easy_admin_log_viewer.levels');
 		$prefix = $container->getParameter('easy_admin_log_viewer.route_prefix');
 
-		$this->assertCount(4, $levels);
+		$this->assertCount(8, $levels);
 		$this->assertEquals('/admin', $prefix);
 	}
 

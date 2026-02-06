@@ -13,3 +13,4 @@ easy_admin_log_viewer_show:
 easy_admin_log_viewer_delete:
   path: /log-files/delete
   controller: CodeBuds\EasyAdminLogViewerBundle\Controller\Admin\LogFileController::delete
+  methods: POST

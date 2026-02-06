@@ -3,6 +3,7 @@
 namespace CodeBuds\EasyAdminLogViewerBundle\Twig\Components\AdminLogViewer;
 
 use CodeBuds\EasyAdminLogViewerBundle\Entity\Dto\FileDto;
+use CodeBuds\EasyAdminLogViewerBundle\Entity\Dto\LogFileLine;
 use CodeBuds\EasyAdminLogViewerBundle\Service\LogFileService;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -16,7 +17,6 @@ use Symfony\UX\TwigComponent\Attribute\PostMount;
 class Show
 {
     use DefaultActionTrait;
-
     use ComponentToolsTrait;
 
     #[LiveProp(writable: true, url: new UrlMapping(as: 'type'))]
@@ -25,6 +25,7 @@ class Show
     #[LiveProp(writable: true, url: new UrlMapping(as: 'level'))]
     public string $level = '';
 
+    /** @var LogFileLine[] */
     public array $contentArray = [];
 
     #[LiveProp]
@@ -39,6 +40,10 @@ class Show
     #[LiveProp(writable: false, useSerializerForHydration: true)]
     public ?FileDto $file = null;
 
+    public function __construct(private readonly LogFileService $logFileService)
+    {
+    }
+
     public function mount(FileDto $file): void
     {
         $this->file = $file;
@@ -47,27 +52,26 @@ class Show
     #[PostMount]
     public function postMount(): void
     {
-        $data = $this->getFileData();
-        $this->levelFilters = $data['levels'];
-        $this->contentArray = $data['content'];
-        $this->typeFilters = $data['types'];
-        $this->lineCount = count($this->contentArray);
-    }
-
-    public function __construct(private readonly LogFileService $logFileService)
-    {
+        $this->loadData();
     }
 
     #[LiveAction]
     public function changeFilter(): void
     {
-        $data = $this->getFileData();
-        $this->contentArray = $data['content'];
-        $this->lineCount = count($this->contentArray);
+        $this->loadData();
     }
 
-    public function getFileData(): array
+    private function loadData(): void
     {
-        return $this->logFileService->getLogFileContentArray($this->file->getPath(), $this->level, $this->type);
+        $data = $this->logFileService->getLogFileContentArray(
+            $this->file->path,
+            $this->level ?: null,
+            $this->type ?: null,
+        );
+
+        $this->contentArray = $data['content'];
+        $this->typeFilters = $data['types'];
+        $this->levelFilters = $data['levels'];
+        $this->lineCount = \count($this->contentArray);
     }
 }

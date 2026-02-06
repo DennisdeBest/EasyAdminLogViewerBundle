@@ -8,7 +8,7 @@
 			<th class="header-for-field-text">Name</th>
 			<th class="header-for-field-text">Size</th>
 			<th class="header-for-field-text">Path</th>
-			<th class="header-for-field-text">UpdatedOn</th>
+			<th class="header-for-field-text">Updated</th>
 			<th></th>
 		</tr>
 		</thead>
@@ -21,14 +21,19 @@
 				<td>{{ file.lastUpdatedAt|format_datetime() }}</td>
 				<td class="actions">
 					<a class="action"
-						 href="{{ ea_url().setRoute('easy_admin_log_viewer_show', {path: file.path}) }}" ><span class="action-label">Show</span></a>
+						 href="{{ ea_url().setRoute('easy_admin_log_viewer_show', {path: file.path}) }}"><span class="action-label">Show</span></a>
 
-					<a class="action text-danger"
-						 href="{{ ea_url().setRoute('easy_admin_log_viewer_delete', {path: file.path}) }}" ><span class="action-label">Delete</span></a>
+					<form method="post" action="{{ path('easy_admin_log_viewer_delete') }}" style="display: inline"
+								onsubmit="return confirm('Delete {{ file.name }}?')">
+						<input type="hidden" name="_token" value="{{ csrf_token('delete-log-file') }}">
+						<input type="hidden" name="path" value="{{ file.path }}">
+						<button type="submit" class="action text-danger" style="background: none; border: none; cursor: pointer; padding: 0">
+							<span class="action-label">Delete</span>
+						</button>
+					</form>
 				</td>
 			</tr>
 		{% endfor %}
 		</tbody>
 	</table>
-
 {% endblock %}

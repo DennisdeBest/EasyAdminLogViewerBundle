@@ -3,13 +3,15 @@
 namespace CodeBuds\EasyAdminLogViewerBundle\Service;
 
 use CodeBuds\EasyAdminLogViewerBundle\Entity\Dto\FileDto;
-use http\Exception\InvalidArgumentException;
+use CodeBuds\EasyAdminLogViewerBundle\Entity\Dto\LogFileLine;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 readonly class LogFileService
 {
+    private const int DEFAULT_MAX_LINES = 5000;
+    private const string LOG_LINE_PATTERN = '/\[(?P<date>.*?)\]\s(?P<type>.*?)\.(?P<level>.*?):\s(?P<message>.*)/';
+
     public function __construct(
         #[Autowire('%kernel.logs_dir%')]
         private string $logDir,
@@ -18,22 +20,20 @@ readonly class LogFileService
     ) {
     }
 
+    /**
+     * @return FileDto[]
+     */
     public function getLogFiles(): array
     {
         $finder = new Finder();
-        $finder->files()->name('*.log')->in($this->logDir)->sort(function (\SplFileInfo $a, \SplFileInfo $b) {
-            return $b->getMTime() - $a->getMTime();
-        });
+        $finder->files()->name('*.log')->in($this->logDir)->sort(
+            static fn (\SplFileInfo $a, \SplFileInfo $b): int => $b->getMTime() - $a->getMTime(),
+        );
+
         $files = [];
 
-        if ($finder->hasResults()) {
-            foreach ($finder as $file) {
-                $files[] = (new FileDto())
-                    ->setName($file->getFilename())
-                    ->setPath($file->getRealPath())
-                    ->setSize($file->getSize())
-                    ->setLastUpdatedAt((new \DateTime())->setTimestamp($file->getMTime()));
-            }
+        foreach ($finder as $file) {
+            $files[] = $this->createFileDto($file);
         }
 
         return $files;
@@ -42,18 +42,12 @@ readonly class LogFileService
     public function getFileDataForAbsolutePath(string $path): FileDto
     {
         $this->validateLogFilePath($path);
-        $file = new \SplFileInfo($path);
 
-        return (new FileDto())
-            ->setName($file->getFilename())
-            ->setPath($file->getRealPath())
-            ->setSize($file->getSize())
-            ->setLastUpdatedAt((new \DateTime())->setTimestamp($file->getMTime()));
+        return $this->createFileDto(new \SplFileInfo($path));
     }
 
     public function validateLogFilePath(string $path): void
     {
-        // Check that the path strictly starts with the log dir and does not contain any back steps like ../../
         if (!str_starts_with($path, $this->logDir) || str_contains($path, '..')) {
             throw new \InvalidArgumentException('Invalid file path.');
         }
@@ -63,73 +57,46 @@ readonly class LogFileService
         }
     }
 
-    public function getLogFileContent(string $path): string
-    {
-        $this->validateLogFilePath($path);
+    /**
+     * Parse log file into structured entries with filtering.
+     *
+     * @return array{content: LogFileLine[], types: string[], levels: string[]}
+     */
+    public function getLogFileContentArray(
+        string $path,
+        ?string $levelFilter = null,
+        ?string $typeFilter = null,
+        int $maxLines = self::DEFAULT_MAX_LINES,
+    ): array {
+        $rawLines = $this->tailFile($path, $maxLines);
+        $entries = $this->parseLogEntries($rawLines);
 
-        return file_get_contents($path);
-    }
-
-    public function getLogFileContentArray(string $path, ?string $levelFilter = null, ?string $typeFilter = null): array
-    {
-        $content = $this->getLogFileContent($path);
-        $lines = explode("\n", $content);
-        $lines = array_reverse($lines);
-        $formatted = [];
-        $pattern = '/\[(?P<date>.*?)\]\s(?P<type>.*?)\.(?P<level>.*?):\s(?P<message>.*)/';
         $levels = [];
         $types = [];
-        foreach ($lines as $line) {
-            if ($line === '') {
+        $filtered = [];
+
+        foreach ($entries as $entry) {
+            if (!in_array($entry->type, $types, true)) {
+                $types[] = $entry->type;
+            }
+            if (!in_array($entry->level, $levels, true)) {
+                $levels[] = $entry->level;
+            }
+
+            if ($levelFilter && $entry->level !== $levelFilter) {
+                continue;
+            }
+            if ($typeFilter && $entry->type !== $typeFilter) {
                 continue;
             }
 
-            preg_match($pattern, $line, $matches);
-
-            $level = $matches['level'] ?? null;
-            $date = $matches['date'] ?? null;
-            $type = $matches['type'] ?? null;
-
-            if ($type && !in_array($type, $types, true)) {
-                $types[] = $type;
-            }
-
-            if ($level && !in_array($level, $levels, true)) {
-                $levels[] = $level;
-            }
-
-            if ($levelFilter && $level !== $levelFilter) {
-                continue;
-            }
-
-            if ($typeFilter && $type !== $typeFilter) {
-                continue;
-            }
-
-            $badgeLevel = self::getBadgeLevel($level, $this->levels);
-
-            $formatted[] =
-                [
-                    'date' => $date ? new \DateTime($date) : null,
-                    'type' => $type,
-                    'level' => $level,
-                    'badgeLevel' => $badgeLevel,
-                    'message' => $matches['message'] ?? null,
-                ];
+            $filtered[] = $entry;
         }
 
-        return ['content' => $formatted, 'types' => $types, 'levels' => $levels];
-    }
+        sort($types);
+        sort($levels);
 
-    public static function getBadgeLevel(string $level, array $levels): ?string
-    {
-        foreach ($levels as $configLevel) {
-            if ($level === $configLevel['level']) {
-                return $configLevel['class'];
-            }
-        }
-
-        return null;
+        return ['content' => $filtered, 'types' => $types, 'levels' => $levels];
     }
 
     public function deleteLogFile(string $path): string
@@ -143,17 +110,112 @@ readonly class LogFileService
         return 'An error occurred during file deletion.';
     }
 
-    public static function humanFilesize($size, $precision = 2, $space = true): string
+    /**
+     * Read the last N lines from a file without loading the entire file into memory.
+     *
+     * @return string[]
+     */
+    private function tailFile(string $path, int $maxLines): array
     {
-        static $units = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        $this->validateLogFilePath($path);
+
+        $file = new \SplFileObject($path, 'r');
+        $file->seek(PHP_INT_MAX);
+        $totalLines = $file->key();
+
+        if ($totalLines === 0) {
+            return [];
+        }
+
+        $startLine = max(0, $totalLines - $maxLines);
+        $lines = [];
+
+        $file->seek($startLine);
+        while (!$file->eof()) {
+            $line = $file->current();
+            if ($line !== false && trim($line) !== '') {
+                $lines[] = rtrim($line);
+            }
+            $file->next();
+        }
+
+        return array_reverse($lines);
+    }
+
+    /**
+     * Parse raw log lines into LogFileLine entries, handling multiline entries (stack traces).
+     * Lines that don't match the log pattern are appended to the previous entry's message.
+     *
+     * @param string[] $lines Lines in reverse chronological order
+     * @return LogFileLine[]
+     */
+    private function parseLogEntries(array $lines): array
+    {
+        $entries = [];
+        $pendingExtraLines = [];
+
+        foreach ($lines as $line) {
+            if (preg_match(self::LOG_LINE_PATTERN, $line, $matches)) {
+                $message = $matches['message'];
+
+                // Prepend any accumulated extra lines (stack traces) to this entry
+                if (!empty($pendingExtraLines)) {
+                    $message .= "\n" . implode("\n", array_reverse($pendingExtraLines));
+                    $pendingExtraLines = [];
+                }
+
+                $entries[] = new LogFileLine(
+                    type: $matches['type'],
+                    level: $matches['level'],
+                    badgeLevel: self::getBadgeLevel($matches['level'], $this->levels),
+                    date: new \DateTimeImmutable($matches['date']),
+                    message: $message,
+                );
+            } else {
+                // Non-matching line (stack trace, context, etc.) — collect for the next matching entry
+                $pendingExtraLines[] = $line;
+            }
+        }
+
+        return $entries;
+    }
+
+    public static function getBadgeLevel(string $level, array $levels): string
+    {
+        foreach ($levels as $configLevel) {
+            if ($level === $configLevel['level']) {
+                return $configLevel['class'];
+            }
+        }
+
+        return 'secondary';
+    }
+
+    public static function humanFilesize(?int $size, int $precision = 2): string
+    {
+        if ($size === null || $size === 0) {
+            return '0 B';
+        }
+
+        $units = ['B', 'kB', 'MB', 'GB', 'TB'];
         $step = 1024;
         $i = 0;
 
-        while (($size / $step) > 0.9) {
+        while (($size / $step) > 0.9 && $i < \count($units) - 1) {
             $size /= $step;
             ++$i;
         }
 
-        return round($size, $precision).($space ? ' ' : '').$units[$i];
+        return round($size, $precision) . ' ' . $units[$i];
+    }
+
+    private function createFileDto(\SplFileInfo $file): FileDto
+    {
+        return new FileDto(
+            name: $file->getFilename(),
+            path: $file->getRealPath(),
+            size: $file->getSize(),
+            lastUpdatedAt: (new \DateTimeImmutable())->setTimestamp($file->getMTime()),
+        );
     }
 }
