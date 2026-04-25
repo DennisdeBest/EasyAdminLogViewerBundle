@@ -1,15 +1,16 @@
-{% for line in lines %}
-	<div style="display: flex; gap: 2rem">
-		<span>{{ line.date|format_datetime() }}</span>
-		<span>{{ line.type }}</span>
-		<b>
-			<span class="badge badge-{{ line.badgeLevel }}">
-				{{- line.level -}}
-			</span>
-		</b>
+{% if lines is empty %}
+	<div class="text-body-secondary">No log lines match the current filters.</div>
+{% else %}
+	<div class="d-flex flex-column gap-3">
+		{% for line in lines %}
+			<div class="border rounded p-3">
+				<div class="d-flex flex-wrap gap-3 align-items-center mb-2 small text-body-secondary">
+					<span>{{ line.date ? line.date|format_datetime() : 'Unknown date' }}</span>
+					<span><code>{{ line.type }}</code></span>
+					<span class="badge text-bg-{{ line.badgeLevel }}">{{ line.level }}</span>
+				</div>
+				<div class="font-monospace small text-break" style="white-space: pre-wrap;">{{- line.message -}}</div>
+			</div>
+		{% endfor %}
 	</div>
-	<div style="overflow-wrap: break-word; white-space: pre-wrap; font-family: monospace; font-size: 0.85em;">
-		{{- line.message -}}
-	</div>
-	<hr/>
-{% endfor %}
+{% endif %}

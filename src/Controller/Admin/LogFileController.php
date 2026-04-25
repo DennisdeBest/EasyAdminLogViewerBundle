@@ -14,8 +14,10 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_ADMIN')]
-class LogFileController extends AbstractController
+final class LogFileController extends AbstractController
 {
+    private const string DELETE_CSRF_ID = 'delete-log-file';
+
     public function __construct(
         private readonly LogFileService $logFileService,
         private readonly AdminUrlGenerator $adminUrlGenerator,
@@ -53,7 +55,7 @@ class LogFileController extends AbstractController
 
     public function delete(Request $request): RedirectResponse
     {
-        if (!$this->isCsrfTokenValid('delete-log-file', $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid(self::DELETE_CSRF_ID, $request->request->get('_token'))) {
             $this->addFlash('error', 'Invalid CSRF token.');
 
             return $this->redirectToList();
@@ -64,7 +66,7 @@ class LogFileController extends AbstractController
 
         try {
             $message = $this->logFileService->deleteLogFile($path);
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             $type = 'error';
             $message = $exception->getMessage();
         }

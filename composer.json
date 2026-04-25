@@ -1,9 +1,9 @@
 {
 	"name": "codebuds/easyadmin-log-viewer-bundle",
 	"type": "symfony-bundle",
-	"description": "A log viewer bundle for EasyAdmin 4 in Symfony applications",
+	"description": "A Symfony bundle that provides a log viewer interface for EasyAdmin backends",
 	"keywords": ["symfony", "easyadmin", "bundle", "log", "viewer"],
-	"homepage": "https://github.com/your-vendor/easyadmin-log-viewer-bundle",
+	"homepage": "https://github.com/DennisdeBest/EasyAdminLogViewerBundle",
 	"license": "MIT",
 	"authors": [
 		{
@@ -13,7 +13,7 @@
 	],
 	"require": {
 		"php": "^8.5",
-		"easycorp/easyadmin-bundle": "^4.0",
+		"easycorp/easyadmin-bundle": "^5.0",
 		"symfony/framework-bundle": "^8.0",
 		"symfony/twig-bundle": "^8.0",
 		"symfony/ux-live-component": "^2.13",
@@ -40,6 +40,9 @@
 		}
 	},
 	"extra": {
+		"symfony": {
+			"bundle": "CodeBuds\\EasyAdminLogViewerBundle\\EasyAdminLogViewerBundle"
+		},
 		"branch-alias": {
 			"dev-master": "1.0-dev"
 		}

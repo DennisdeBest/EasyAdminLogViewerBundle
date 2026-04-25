@@ -1,90 +1,71 @@
 # EasyAdmin Log Viewer Bundle
 
-A Symfony bundle that provides a log viewer interface for EasyAdmin 4, compatible with Symfony 7 and PHP 8.3.
+A Symfony bundle that provides a log viewer interface for EasyAdmin backends.
 
 ## Features
 
-- View log files directly from your EasyAdmin dashboard
+- Browse available log files from the admin
+- View parsed log entries with multiline stack traces
+- Filter log entries by channel and level
 - Download log files
 - Delete log files
-- Filter log entries by level and type
-- Configurable route prefix
+- Configure the admin route prefix
 
 ## Requirements
 
 - PHP 8.5+
 - Symfony 8+
-- EasyAdmin 4
+- EasyAdmin 4.29+ or 5.x
 
 ## Installation
 
-Use Composer to install the bundle:
+Install the bundle with Composer:
 
 ```bash
 composer require codebuds/easyadmin-log-viewer-bundle
 ```
 
-## Configuration
-
-Add the bundle to your `config/bundles.php`:
+Symfony Flex should enable the bundle automatically. Without Flex, add it to `config/bundles.php`:
 
 ```php
 return [
     // ...
-    EasyAdminLogViewerBundle::class => ['all' => true],
+    CodeBuds\EasyAdminLogViewerBundle\EasyAdminLogViewerBundle::class => ['all' => true],
 ];
 ```
 
-Create a configuration file `config/packages/easy_admin_log_viewer.yaml`:
+## Configuration
+
+The bundle works out of the box. If needed, create `config/packages/easy_admin_log_viewer.yaml` to override the defaults:
 
 ```yaml
 easy_admin_log_viewer:
-    route_prefix: '/admin'  # Default value, can be customized
+    route_prefix: '/admin'
     levels:
-        - { level: 'INFO', class: 'info' }
-        - { level: 'ERROR', class: 'danger' }
+        - { level: 'EMERGENCY', class: 'danger' }
         - { level: 'CRITICAL', class: 'danger' }
+        - { level: 'ERROR', class: 'danger' }
+        - { level: 'ALERT', class: 'danger' }
+        - { level: 'WARNING', class: 'warning' }
+        - { level: 'NOTICE', class: 'info' }
+        - { level: 'INFO', class: 'info' }
         - { level: 'DEBUG', class: 'secondary' }
 ```
 
-The level is what is automatically picked up from the log files. Then a CSS class can be set per level. By default the predefined Bootstrap styles can be used `primary`, `secondary`, `success`, `danger`, `warning`, `info`, `light`, `dark`
-
-### Twig component
-
-A default path has to be added to the `twig_component.yaml` configuration file:
-
-```yaml
-twig_component:
-    defaults:
-				#...
-        CodeBuds\EasyAdminLogViewerBundle\Twig\Components\: '@EasyAdminLogViewer/components/'
-
-```
+The configured `class` values map directly to Bootstrap contextual classes such as `primary`, `secondary`, `success`, `danger`, `warning`, `info`, `light`, and `dark`.
 
 ## Routing
 
-The following needs to be added to the applications routes.yaml configuration file:
-
-```yaml
-easy_admin_log_viewer:
-  resource: '@EasyAdminLogViewerBundle/config/routes.yaml'
-  prefix: '%easy_admin_log_viewer.route_prefix%'
-```
-
-### Customizing the Route Prefix
-
-You can customize the route prefix in your configuration:
+Routes are imported automatically by the bundle. You can customize the route prefix like this:
 
 ```yaml
 easy_admin_log_viewer:
     route_prefix: '/custom-admin'
 ```
 
-This will change all log viewer routes to start with `/custom-admin` instead of the default `/admin`.
+## Adding the Log Viewer to the Dashboard
 
-### Adding the log viewer to the dashboard
-
-To see the log files the route can be added to your EasyAdmin dashboard controller:
+Add the route to your EasyAdmin dashboard controller:
 
 ```php
 <?php
@@ -99,22 +80,21 @@ class DashboardController extends AbstractDashboardController
     #[\Override]
     public function configureMenuItems(): iterable
     {
-        ...
-        yield MenuItem::linktoRoute('Logs', 'fa fa-file-alt', 'easy_admin_log_viewer_list')->setPermission('ROLE_ADMIN');
-        ...
+        // ...
+        yield MenuItem::linkToRoute('Logs', 'fa fa-file-alt', 'easy_admin_log_viewer_list')
+            ->setPermission('ROLE_ADMIN');
+        // ...
     }
 }
 ```
 
-### Security
-Only users with `ROLE_ADMIN` can access the log viewer interface. Make sure to properly secure your admin routes.
+## Security
 
-### Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
+Only users with `ROLE_ADMIN` can access the log viewer interface. Make sure your admin area is properly secured.
 
 ## Screenshots
 
-### List all the log files
+### List all log files
 ![screen1.png](./docs/screen1.png)
 
 ### Show all lines

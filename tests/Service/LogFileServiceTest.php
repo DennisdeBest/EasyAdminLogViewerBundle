@@ -119,6 +119,31 @@ class LogFileServiceTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    public function testValidateLogFilePathRejectsEmptyPath(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid file path.');
+        $this->logFileService->validateLogFilePath('');
+    }
+
+    public function testValidateLogFilePathRejectsSymlinkOutsideLogDir(): void
+    {
+        $outsideFile = tempnam(sys_get_temp_dir(), 'outside-log-viewer-');
+        file_put_contents($outsideFile, 'outside');
+
+        $symlinkPath = $this->logDir . 'symlink.log';
+        symlink($outsideFile, $symlinkPath);
+
+        try {
+            $this->expectException(\InvalidArgumentException::class);
+            $this->expectExceptionMessage('Invalid file path.');
+            $this->logFileService->validateLogFilePath($symlinkPath);
+        } finally {
+            @unlink($symlinkPath);
+            @unlink($outsideFile);
+        }
+    }
+
     // --- File data ---
 
     public function testGetFileDataForAbsolutePath(): void

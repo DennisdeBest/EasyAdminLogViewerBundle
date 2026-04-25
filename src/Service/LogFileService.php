@@ -10,7 +10,9 @@ use Symfony\Component\Finder\Finder;
 readonly class LogFileService
 {
     private const int DEFAULT_MAX_LINES = 5000;
-    private const string LOG_LINE_PATTERN = '/\[(?P<date>.*?)\]\s(?P<type>.*?)\.(?P<level>.*?):\s(?P<message>.*)/';
+    private const string LOG_LINE_PATTERN = '/^\[(?P<date>[^\]]+)]\s+(?P<type>[^.]+)\.(?P<level>[^:]+):\s?(?P<message>.*)$/';
+
+    private string $resolvedLogDir;
 
     public function __construct(
         #[Autowire('%kernel.logs_dir%')]
@@ -18,6 +20,8 @@ readonly class LogFileService
         #[Autowire('%easy_admin_log_viewer.levels%')]
         private array $levels,
     ) {
+        $resolvedLogDir = realpath($this->logDir);
+        $this->resolvedLogDir = false !== $resolvedLogDir ? rtrim($resolvedLogDir, DIRECTORY_SEPARATOR) : rtrim($this->logDir, DIRECTORY_SEPARATOR);
     }
 
     /**
@@ -26,7 +30,7 @@ readonly class LogFileService
     public function getLogFiles(): array
     {
         $finder = new Finder();
-        $finder->files()->name('*.log')->in($this->logDir)->sort(
+        $finder->files()->name('*.log')->in($this->resolvedLogDir)->sort(
             static fn (\SplFileInfo $a, \SplFileInfo $b): int => $b->getMTime() - $a->getMTime(),
         );
 
@@ -48,12 +52,22 @@ readonly class LogFileService
 
     public function validateLogFilePath(string $path): void
     {
-        if (!str_starts_with($path, $this->logDir) || str_contains($path, '..')) {
+        if ('' === trim($path)) {
             throw new \InvalidArgumentException('Invalid file path.');
         }
 
-        if (!file_exists($path)) {
+        $resolvedPath = realpath($path);
+        if (false === $resolvedPath) {
             throw new \InvalidArgumentException('File does not exist.');
+        }
+
+        if (!is_file($resolvedPath)) {
+            throw new \InvalidArgumentException('Invalid file path.');
+        }
+
+        $expectedPrefix = $this->resolvedLogDir . DIRECTORY_SEPARATOR;
+        if ($resolvedPath !== $this->resolvedLogDir && !str_starts_with($resolvedPath, $expectedPrefix)) {
+            throw new \InvalidArgumentException('Invalid file path.');
         }
     }
 
@@ -168,7 +182,7 @@ readonly class LogFileService
                     type: $matches['type'],
                     level: $matches['level'],
                     badgeLevel: self::getBadgeLevel($matches['level'], $this->levels),
-                    date: new \DateTimeImmutable($matches['date']),
+                    date: $this->createDate($matches['date']),
                     message: $message,
                 );
             } else {
@@ -189,6 +203,15 @@ readonly class LogFileService
         }
 
         return 'secondary';
+    }
+
+    private function createDate(string $date): ?\DateTimeImmutable
+    {
+        try {
+            return new \DateTimeImmutable($date);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     public static function humanFilesize(?int $size, int $precision = 2): string
