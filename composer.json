@@ -16,8 +16,8 @@
 		"easycorp/easyadmin-bundle": "^5.0",
 		"symfony/framework-bundle": "^8.0",
 		"symfony/twig-bundle": "^8.0",
-		"symfony/ux-live-component": "^2.13",
-		"symfony/ux-twig-component": "^2.13"
+		"symfony/ux-live-component": "^2.13|^3.0",
+		"symfony/ux-twig-component": "^2.13|^3.0"
 	},
 	"require-dev": {
 		"phpstan/phpstan": "^2.0",

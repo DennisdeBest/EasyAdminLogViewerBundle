@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0 - 2026-04-25
+
+### Changed
+
+- Relaxed the Symfony UX component constraints to allow both `2.x` and `3.x`.
+- Kept the bundle compatible with the app's Symfony UX 3 upgrade path without changing runtime behavior.
+
 ## 1.0.0 - 2026-04-25
 
 ### Added
